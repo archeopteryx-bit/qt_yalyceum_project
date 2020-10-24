@@ -1,0 +1,5 @@
+#0A0A0A - color for frame.
+#141414 - color for other.
+#FFFFFF - color for font.
+ - icons.
+False - autosave.
