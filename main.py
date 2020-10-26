@@ -1,7 +1,7 @@
 import sys  # import sqlite3
 import os
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QDialog, QLineEdit
 from PyQt5.QtGui import QIcon, QFont
 # from DataBase import *
 
@@ -30,13 +30,6 @@ class MainWindow(QMainWindow):
         self.close_search.clicked.connect(self.search_note)
         self.settings.clicked.connect(self.open_setting)
         self.note_list.itemClicked.connect(self.open_note)
-
-    # def list_(self):
-    #     for i in os.listdir('note'):
-    #         with open(f'note/{i}', mode='rt') as f:
-    #             f = f.readlines()
-    #         self.note_list.addItem(f[0])
-    #         print(i, f[0])
 
     def open_note(self):
         print(self.a.currentItem().text())
@@ -115,10 +108,10 @@ class Settings(QWidget):
     def passworded(self):
         with open('psw.txt', mode='rt') as psw_r:
             psw_r = psw_r.readline()
-        if len(psw_r) == 0:
+        if len(psw_r) == 1:
             self.delpassword_button.hide()
             self.password_button.show()
-        elif len(psw_r) > 0:
+        elif len(psw_r) > 1:
             self.password_button.hide()
             self.delpassword_button.show()
 
@@ -171,11 +164,22 @@ class Dlg(QDialog):
         self.password_error_label.hide()
         self.ok.clicked.connect(self.set_password)
         self.cancel.clicked.connect(self.close_)
+        self.see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.show()
+
+    def ech_mode(self):
+        if self.sender() == self.not_see_psw:
+            self.first_line.setEchoMode(QLineEdit.Normal)
+            self.not_see_psw.hide()
+        else:
+            self.first_line.setEchoMode(QLineEdit.Password)
+            self.not_see_psw.show()
 
     def set_password(self):
         if self.first_line.text() == self.second_line.text():
             with open('psw.txt', mode='wt') as psw_w:
-                psw_w.write(self.first_line.text())
+                psw_w.write('.' + self.first_line.text())
             sett.passworded()
             self.close()
         else:
@@ -200,13 +204,24 @@ class Dlg2(QDialog):
         self.cancel.setText('Выход')
         self.ok.clicked.connect(self.delete_password)
         self.cancel.clicked.connect(self.close_)
+        self.see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.show()
+
+    def ech_mode(self):
+        if self.sender() == self.not_see_psw:
+            self.first_line.setEchoMode(QLineEdit.Normal)
+            self.not_see_psw.hide()
+        else:
+            self.first_line.setEchoMode(QLineEdit.Password)
+            self.not_see_psw.show()
 
     def delete_password(self):
         with open('psw.txt', mode='rt') as psw_r:
-            psw_r = psw_r.readline()
+            psw_r = psw_r.readline()[1:]
         if self.first_line.text() == psw_r.rstrip():
             with open('psw.txt', mode='wt') as psw_w:
-                psw_r.replace(psw_r, '')
+                psw_w.write('.')
             sett.passworded()
             self.close()
         else:
@@ -229,6 +244,17 @@ class CheckPassword(QDialog):
         self.password_error_label.hide()
         self.ok.clicked.connect(check_password)
         self.cancel.clicked.connect(self.close_)
+        self.see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.show()
+
+    def ech_mode(self):
+        if self.sender() == self.not_see_psw:
+            self.first_line.setEchoMode(QLineEdit.Normal)
+            self.not_see_psw.hide()
+        else:
+            self.first_line.setEchoMode(QLineEdit.Password)
+            self.not_see_psw.show()
 
     def close_(self):
         self.close()
@@ -247,6 +273,7 @@ def theme():
     r, l = '{', '}'
 
     ex.menu_button.setIcon(QIcon('Sprites' + icons + '/menu1.png'))
+    ex.settings.setIcon(QIcon('Sprites' + icons + '/sett.png'))
     ex.plus_button.setIcon(QIcon('Sprites' + icons + '/plus.png'))
     ex.close_search.setIcon(QIcon('Sprites' + icons + '/close_search.png'))
     ex.basket_button.setIcon(QIcon('Sprites' + icons + '/basket.png'))
@@ -254,6 +281,12 @@ def theme():
     sett.delpassword_button.setIcon(QIcon('Sprites' + icons + '/open_lock.png'))
     sett.password_button.setIcon(QIcon('Sprites' + icons + '/lock.png'))
     sett.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
+    psw_.not_see_psw.setIcon(QIcon('Sprites' + icons + '/close_eye.png'))
+    psw_.see_psw.setIcon(QIcon('Sprites' + icons + '/eye.png'))
+    psw_2.not_see_psw.setIcon(QIcon('Sprites' + icons + '/close_eye.png'))
+    psw_2.see_psw.setIcon(QIcon('Sprites' + icons + '/eye.png'))
+    chk.see_psw.setIcon(QIcon('Sprites' + icons + '/eye.png'))
+    chk.not_see_psw.setIcon(QIcon('Sprites' + icons + '/close_eye.png'))
 
     ex.setStyleSheet(f"""
             QMainWindow{r}
@@ -443,6 +476,16 @@ def theme():
                         color: {color_3};
                     {l}
     """)
+    psw_.not_see_psw.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_2};
+                    {l}
+    """)
+    psw_.see_psw.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_2};
+                    {l}
+    """)
 
     psw_2.setStyleSheet(f"""
                     QDialog{r}
@@ -465,6 +508,16 @@ def theme():
                     QPushButton{r}
                         background-color: {color_2};
                         color: {color_3};
+                    {l}
+    """)
+    psw_2.not_see_psw.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_2};
+                    {l}
+    """)
+    psw_2.see_psw.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_2};
                     {l}
     """)
 
@@ -507,7 +560,7 @@ def check():
 
 def check_password():
     with open('psw.txt', mode='rt') as psw_r:
-        psw_r = psw_r.readline()
+        psw_r = psw_r.readline()[1:]
     if chk.first_line.text() == psw_r.rstrip():
         chk.close()
         ex.show()
@@ -521,7 +574,7 @@ def check_password():
 def if_passworded():
     with open('psw.txt', mode='rt') as psw_r:
         psw_r = psw_r.readline()
-    if len(psw_r) != 0:
+    if len(psw_r) != 1:
         chk.show()
     else:
         ex.show()
