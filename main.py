@@ -1,9 +1,9 @@
-import sys  # import sqlite3
-import os
+import sys
+import sqlite3
+import datetime as dt
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QDialog, QLineEdit
-from PyQt5.QtGui import QIcon, QFont
-# from DataBase import *
+from PyQt5.QtGui import QIcon
 
 
 with open('colors.txt', mode='rt') as color_:
@@ -13,7 +13,6 @@ with open('colors.txt', mode='rt') as color_:
     color_3 = color_[2][:color_[2].index(' ')]
     icons = color_[3][:color_[3].index(' ')]
     save = color_[4][:color_[4].index(' ')]
-no = ['<', '>', ':', '/', '\'', '|', '?', '*', '"']
 
 
 class MainWindow(QMainWindow):
@@ -23,16 +22,30 @@ class MainWindow(QMainWindow):
         uic.loadUi('Note.ui', self)
         self.search_frame.hide()
         self.menu_widget.hide()
-        self.note_list.hide()
         self.menu_button.clicked.connect(self.menu)
         self.plus_button.clicked.connect(self.add_note)
         self.open_search.clicked.connect(self.search_note)
         self.close_search.clicked.connect(self.search_note)
         self.settings.clicked.connect(self.open_setting)
         self.note_list.itemClicked.connect(self.open_note)
+        self.head = ''
+        self.list_()
+
+    def list_(self):
+        con = sqlite3.connect('note_db.sqlite')
+        cur = con.cursor()
+        result = cur.execute("""
+                        SELECT heading
+                        FROM notes
+                        """).fetchall()
+        con.close()
+        for elem in result:
+            self.note_list.addItem(elem[0])
+            # self.note_list.setItem(0, 0, self)
 
     def open_note(self):
-        print(self.a.currentItem().text())
+        self.head = self.note_list.currentItem().text()
+        new_note.editnote()
 
     def menu(self):
         if self.menu_widget.isHidden():
@@ -45,7 +58,7 @@ class MainWindow(QMainWindow):
         ex.setVisible(False)
         new_note.show()
 
-    def search_note(self):  # SQL3
+    def search_note(self):
         if self.sender() == self.open_search:
             self.search_frame.show()
             self.menu_widget.hide()
@@ -78,17 +91,32 @@ class Note(QWidget):
         self.noteEdit.setPlainText('')
 
     def savenote(self):
-        global no
+        if self.heading.text() != '' and self.noteEdit.toPlainText() != '':
+            con = sqlite3.connect('note_db.sqlite')
+            cur = con.cursor()
+            cur.execute(f'INSERT INTO notes VALUES (?, ?, ?, ?)',
+                        (self.heading.text(),  self.noteEdit.toPlainText(),
+                         dt.datetime.today(), dt.datetime.today()))
+            con.commit()
+            con.close()
+
+    def editnote(self):
+        ex.setVisible(False)
+        new_note.show()
         try:
-            if self.heading.text() != '' or self.noteEdit.toPlainText() != '':
-                name = self.heading.text()
-                filename = f'{name}.txt'
-                if filename in os.listdir("note"):
-                    print('blin')
-                    return
-                with open(f'note/{filename}', mode='wt') as newfile:
-                    newfile.write(self.heading.text() + '\n' + self.noteEdit.toPlainText())
-                    self.note_list.addItem(self.heading.text())
+            con = sqlite3.connect('note_db.sqlite')
+            cur = con.cursor()
+            note = cur.execute(f"""
+                            SELECT heading, note
+                            FROM notes
+                            WHERE heading = '%{ex.note_list.currentItem()}%'
+            """)
+            # self.heading.setText(note)
+            # self.noteEdit.setPlainText(note)
+            for i in note:
+                self.heading.setText(i)
+                self.noteEdit.setPlainText(i)
+            con.close()
         except Exception as e:
             print('Непредвиденная ошибка %s' % e)
 
@@ -292,6 +320,12 @@ def theme():
             QMainWindow{r}
                 background-color: {color_2};
             {l}
+    """)
+    ex.note_list.setStyleSheet(f"""
+                    QWidget{r}
+                        background-color: {color_2};
+                        color: {color_3};
+                    {l}
     """)
     ex.centralwidget.setStyleSheet(f"""
                     QWidget{r}
