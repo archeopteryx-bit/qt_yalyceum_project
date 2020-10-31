@@ -27,8 +27,8 @@ class MainWindow(QMainWindow):
         self.open_search.clicked.connect(self.search_note)
         self.close_search.clicked.connect(self.search_note)
         self.settings.clicked.connect(self.open_setting)
+        self.to_search.clicked.connect(self.searching)
         self.note_list.itemClicked.connect(self.open_note)
-        self.head = ''
         self.list_()
 
     def list_(self):
@@ -44,8 +44,7 @@ class MainWindow(QMainWindow):
             self.note_list.addItem(elem[0])
 
     def open_note(self):
-        self.head = self.note_list.currentItem().text()
-        new_note.flag = False
+        new_note.flag = 'off'
         new_note.editnote()
 
     def menu(self):
@@ -65,14 +64,23 @@ class MainWindow(QMainWindow):
             self.menu_widget.hide()
         elif self.sender() == self.close_search:
             self.search_frame.hide()
-        text = self.search.text()
+
+    def searching(self):
+        ex.note_list.clear()
+        con = sqlite3.connect('note_db.sqlite')
+        cur = con.cursor()
+        result = cur.execute(f"""
+                        SELECT heading
+                        FROM notes
+                        WHERE note LIKE '%{self.search.text()}%' OR heading LIKE '%{self.search.text()}%'
+                        """).fetchall()
+        con.close()
+        for elem in result:
+            ex.note_list.addItem(elem[0])
 
     def open_setting(self):
         ex.setVisible(False)
         sett.show()
-
-    def open_basket(self):
-        pass
 
 
 class Note(QWidget):
@@ -82,7 +90,7 @@ class Note(QWidget):
         self.back.clicked.connect(self.close_note)
         self.save_button.clicked.connect(self.savenote)
         self.delete_2.clicked.connect(self.delete)
-        self.flag = True
+        self.flag = 'on'
 
     def close_note(self):
         global save
@@ -95,61 +103,57 @@ class Note(QWidget):
         ex.list_()
 
     def savenote(self):
-        if self.flag:
-            if self.heading.text() != '' and self.noteEdit.toPlainText() != '':
+        if self.flag == 'on':
+            if self.heading.text() != '':  # and self.noteEdit.toPlainText() != ''
+                if self.noteEdit.toPlainText() == '':
+                    self.noteEdit.setPlainText(' ')
                 con = sqlite3.connect('note_db.sqlite')
                 cur = con.cursor()
-                cur.execute(f'INSERT INTO notes'
-                            f'VALUES (?, ?, ?, ?)',
-                            (self.heading.text(),  self.noteEdit.toPlainText(),
-                             dt.datetime.today(), dt.datetime.today()))
+                cur.execute(f"""INSERT INTO notes
+                            VALUES (?,?)""",
+                            (self.heading.text(), self.noteEdit.toPlainText()))
                 con.commit()
                 con.close()
         else:
             con = sqlite3.connect('note_db.sqlite')
             cur = con.cursor()
-            cur.execute(f'UPDATE notes'
-                        f'SET heading = (?), note = (?), edit_time = (?)'
-                        f'WHERE heading = {self.note_list.currentItem()}',
-                        (self.heading.text(),  self.noteEdit.toPlainText(),
-                         dt.datetime.today()))
+            cur.execute(f"""DELETE FROM notes
+                        WHERE heading = (?)""", (ex.note_list.currentItem().text(),))
+            cur.execute(f"""INSERT INTO notes
+                        VALUES (?,?)""",
+                        (self.heading.text(), self.noteEdit.toPlainText()))
             con.commit()
             con.close()
 
     def editnote(self):
         ex.setVisible(False)
         new_note.show()
-        try:
-            con = sqlite3.connect('note_db.sqlite')
-            cur = con.cursor()
-            note = cur.execute(f"""
-                            SELECT heading, note
-                            FROM notes
-                            WHERE heading = '%{ex.note_list.currentItem()}%'
-            """)
+        con = sqlite3.connect('note_db.sqlite')
+        cur = con.cursor()
+        note = cur.execute(f"""
+                        SELECT heading, note
+                        FROM notes
+                        WHERE heading = (?)""", (ex.note_list.currentItem().text(),)).fetchall()
 
-            # self.heading.setText(note)
-            # self.noteEdit.setPlainText(note)
-            con.close()
-            self.closeEvent(self.back.clicked())
-        except Exception as e:
-            print('Непредвиденная ошибка %s' % e)
+        self.heading.setText(note[0][0])
+        self.noteEdit.setPlainText(note[0][1])
+        self.closeEvent(self.back.clicked.connect(self.close))
 
     def delete(self):
-        try:
-            con = sqlite3.connect('note_db.sqlite')
-            cur = con.cursor()
-            cur.execute(f'DELETE FROM notes'
-                        f'WHERE heading = {self.note_list.currentItem()}')
-            con.commit()
-            con.close()
-            self.hide()
-            ex.setVisible(True)
-        except Exception as e:
-            print('Непредвиденная ошибка %s' % e)
+        con = sqlite3.connect('note_db.sqlite')
+        cur = con.cursor()
+        cur.execute(f"""DELETE FROM notes
+                    WHERE heading = (?)""", (ex.note_list.currentItem().text(),))
+        con.commit()
+        con.close()
+        new_note.close()
+        ex.setVisible(True)
+        self.heading.setText('')
+        self.noteEdit.setPlainText('')
+        ex.list_()
 
     def closeEvent(self, event):
-        self.flag = True
+        self.flag = 'off'
 
 
 class Settings(QWidget):
@@ -327,6 +331,7 @@ def theme():
     ex.settings.setIcon(QIcon('Sprites' + icons + '/sett.png'))
     ex.plus_button.setIcon(QIcon('Sprites' + icons + '/plus.png'))
     ex.close_search.setIcon(QIcon('Sprites' + icons + '/close_search.png'))
+    ex.to_search.setIcon(QIcon('Sprites' + icons + '/search.png'))
     new_note.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
     new_note.delete_2.setIcon(QIcon('Sprites' + icons + '/basket.png'))
     sett.delpassword_button.setIcon(QIcon('Sprites' + icons + '/open_lock.png'))
