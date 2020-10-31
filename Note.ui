@@ -211,7 +211,7 @@
      <rect>
       <x>0</x>
       <y>60</y>
-      <width>191</width>
+      <width>101</width>
       <height>111</height>
      </rect>
     </property>
@@ -236,35 +236,7 @@
       <string notr="true">color: rgb(255, 255, 255);</string>
      </property>
      <property name="text">
-      <string>Sett</string>
-     </property>
-     <property name="autoRepeat">
-      <bool>false</bool>
-     </property>
-     <property name="flat">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="basket_button">
-     <property name="geometry">
-      <rect>
-       <x>110</x>
-       <y>0</y>
-       <width>81</width>
-       <height>71</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>14</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: rgb(255, 255, 255);</string>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>Sprites/basket.png</normaloff>Sprites/basket.png</iconset>
+      <string/>
      </property>
      <property name="iconSize">
       <size>
@@ -272,32 +244,11 @@
        <height>50</height>
       </size>
      </property>
+     <property name="autoRepeat">
+      <bool>false</bool>
+     </property>
      <property name="flat">
       <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_2">
-     <property name="geometry">
-      <rect>
-       <x>110</x>
-       <y>70</y>
-       <width>81</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: rgb(255, 255, 255);</string>
-     </property>
-     <property name="text">
-      <string>Корзина</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
      </property>
     </widget>
     <widget class="QLabel" name="label_3">
@@ -334,9 +285,17 @@
       <height>551</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>MS Shell Dlg 2</family>
+      <pointsize>14</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
    </widget>
-   <zorder>frame</zorder>
    <zorder>note_list</zorder>
+   <zorder>frame</zorder>
    <zorder>menu_widget</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">

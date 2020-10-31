@@ -81,6 +81,7 @@ class Note(QWidget):
         uic.loadUi('Plus_Note.ui', self)
         self.back.clicked.connect(self.close_note)
         self.save_button.clicked.connect(self.savenote)
+        self.delete_2.clicked.connect(self.delete)
         self.flag = True
 
     def close_note(self):
@@ -98,13 +99,22 @@ class Note(QWidget):
             if self.heading.text() != '' and self.noteEdit.toPlainText() != '':
                 con = sqlite3.connect('note_db.sqlite')
                 cur = con.cursor()
-                cur.execute(f'INSERT INTO notes VALUES (?, ?, ?, ?)',
+                cur.execute(f'INSERT INTO notes'
+                            f'VALUES (?, ?, ?, ?)',
                             (self.heading.text(),  self.noteEdit.toPlainText(),
                              dt.datetime.today(), dt.datetime.today()))
                 con.commit()
                 con.close()
         else:
-            pass  # edit
+            con = sqlite3.connect('note_db.sqlite')
+            cur = con.cursor()
+            cur.execute(f'UPDATE notes'
+                        f'SET heading = (?), note = (?), edit_time = (?)'
+                        f'WHERE heading = {self.note_list.currentItem()}',
+                        (self.heading.text(),  self.noteEdit.toPlainText(),
+                         dt.datetime.today()))
+            con.commit()
+            con.close()
 
     def editnote(self):
         ex.setVisible(False)
@@ -117,10 +127,24 @@ class Note(QWidget):
                             FROM notes
                             WHERE heading = '%{ex.note_list.currentItem()}%'
             """)
+
             # self.heading.setText(note)
             # self.noteEdit.setPlainText(note)
             con.close()
             self.closeEvent(self.back.clicked())
+        except Exception as e:
+            print('Непредвиденная ошибка %s' % e)
+
+    def delete(self):
+        try:
+            con = sqlite3.connect('note_db.sqlite')
+            cur = con.cursor()
+            cur.execute(f'DELETE FROM notes'
+                        f'WHERE heading = {self.note_list.currentItem()}')
+            con.commit()
+            con.close()
+            self.hide()
+            ex.setVisible(True)
         except Exception as e:
             print('Непредвиденная ошибка %s' % e)
 
@@ -182,14 +206,6 @@ class Settings(QWidget):
     def close_setting(self):
         sett.close()
         ex.setVisible(True)
-
-
-class Basket(QWidget):
-    def __init__(self, *args):
-        super().__init__()
-
-    def restore(self):  # SQL3
-        pass
 
 
 class Dlg(QDialog):
@@ -311,8 +327,8 @@ def theme():
     ex.settings.setIcon(QIcon('Sprites' + icons + '/sett.png'))
     ex.plus_button.setIcon(QIcon('Sprites' + icons + '/plus.png'))
     ex.close_search.setIcon(QIcon('Sprites' + icons + '/close_search.png'))
-    ex.basket_button.setIcon(QIcon('Sprites' + icons + '/basket.png'))
     new_note.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
+    new_note.delete_2.setIcon(QIcon('Sprites' + icons + '/basket.png'))
     sett.delpassword_button.setIcon(QIcon('Sprites' + icons + '/open_lock.png'))
     sett.password_button.setIcon(QIcon('Sprites' + icons + '/lock.png'))
     sett.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
@@ -386,11 +402,6 @@ def theme():
                         color: {color_3}
                     {l}
     """)
-    ex.label_2.setStyleSheet(f"""
-                    QLabel{r}
-                        color: {color_3}
-                    {l}
-    """)
     ex.label_3.setStyleSheet(f"""
                     QLabel{r}
                         color: {color_3}
@@ -425,12 +436,6 @@ def theme():
                     {l}
     """)
     new_note.save_button.setStyleSheet(f"""
-                    QPushButton{r}
-                        background-color: {color_1};
-                        color: {color_3};
-                    {l}
-    """)
-    new_note.extr.setStyleSheet(f"""
                     QPushButton{r}
                         background-color: {color_1};
                         color: {color_3};

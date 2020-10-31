@@ -88,7 +88,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="extr">
+   <widget class="QPushButton" name="delete_2">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -106,7 +106,13 @@
      <string notr="true">color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
-     <string>st</string>
+     <string/>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>45</width>
+      <height>45</height>
+     </size>
     </property>
     <property name="flat">
      <bool>true</bool>
