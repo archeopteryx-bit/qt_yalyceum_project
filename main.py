@@ -32,6 +32,7 @@ class MainWindow(QMainWindow):
         self.list_()
 
     def list_(self):
+        self.note_list.clear()
         con = sqlite3.connect('note_db.sqlite')
         cur = con.cursor()
         result = cur.execute("""
@@ -41,10 +42,10 @@ class MainWindow(QMainWindow):
         con.close()
         for elem in result:
             self.note_list.addItem(elem[0])
-            # self.note_list.setItem(0, 0, self)
 
     def open_note(self):
         self.head = self.note_list.currentItem().text()
+        new_note.flag = False
         new_note.editnote()
 
     def menu(self):
@@ -80,6 +81,7 @@ class Note(QWidget):
         uic.loadUi('Plus_Note.ui', self)
         self.back.clicked.connect(self.close_note)
         self.save_button.clicked.connect(self.savenote)
+        self.flag = True
 
     def close_note(self):
         global save
@@ -89,16 +91,20 @@ class Note(QWidget):
             self.savenote()
         self.heading.setText('')
         self.noteEdit.setPlainText('')
+        ex.list_()
 
     def savenote(self):
-        if self.heading.text() != '' and self.noteEdit.toPlainText() != '':
-            con = sqlite3.connect('note_db.sqlite')
-            cur = con.cursor()
-            cur.execute(f'INSERT INTO notes VALUES (?, ?, ?, ?)',
-                        (self.heading.text(),  self.noteEdit.toPlainText(),
-                         dt.datetime.today(), dt.datetime.today()))
-            con.commit()
-            con.close()
+        if self.flag:
+            if self.heading.text() != '' and self.noteEdit.toPlainText() != '':
+                con = sqlite3.connect('note_db.sqlite')
+                cur = con.cursor()
+                cur.execute(f'INSERT INTO notes VALUES (?, ?, ?, ?)',
+                            (self.heading.text(),  self.noteEdit.toPlainText(),
+                             dt.datetime.today(), dt.datetime.today()))
+                con.commit()
+                con.close()
+        else:
+            pass  # edit
 
     def editnote(self):
         ex.setVisible(False)
@@ -113,12 +119,13 @@ class Note(QWidget):
             """)
             # self.heading.setText(note)
             # self.noteEdit.setPlainText(note)
-            for i in note:
-                self.heading.setText(i)
-                self.noteEdit.setPlainText(i)
             con.close()
+            self.closeEvent(self.back.clicked())
         except Exception as e:
             print('Непредвиденная ошибка %s' % e)
+
+    def closeEvent(self, event):
+        self.flag = True
 
 
 class Settings(QWidget):
