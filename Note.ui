@@ -103,7 +103,13 @@
       <string notr="true">color: rgb(255, 255, 255);</string>
      </property>
      <property name="text">
-      <string>Поиск</string>
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>45</width>
+       <height>45</height>
+      </size>
      </property>
      <property name="flat">
       <bool>true</bool>

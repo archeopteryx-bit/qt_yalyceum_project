@@ -104,7 +104,7 @@ class Note(QWidget):
 
     def savenote(self):
         if self.flag == 'on':
-            if self.heading.text() != '':  # and self.noteEdit.toPlainText() != ''
+            if self.heading.text() != '':
                 if self.noteEdit.toPlainText() == '':
                     self.noteEdit.setPlainText(' ')
                 con = sqlite3.connect('note_db.sqlite')
@@ -331,9 +331,11 @@ def theme():
     ex.settings.setIcon(QIcon('Sprites' + icons + '/sett.png'))
     ex.plus_button.setIcon(QIcon('Sprites' + icons + '/plus.png'))
     ex.close_search.setIcon(QIcon('Sprites' + icons + '/close_search.png'))
+    ex.open_search.setIcon(QIcon('Sprites' + icons + '/search.png'))
     ex.to_search.setIcon(QIcon('Sprites' + icons + '/search.png'))
     new_note.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
     new_note.delete_2.setIcon(QIcon('Sprites' + icons + '/basket.png'))
+    new_note.save_button.setIcon(QIcon('Sprites' + icons + '/save.png'))
     sett.delpassword_button.setIcon(QIcon('Sprites' + icons + '/open_lock.png'))
     sett.password_button.setIcon(QIcon('Sprites' + icons + '/lock.png'))
     sett.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
