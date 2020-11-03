@@ -171,6 +171,28 @@
 color: rgb(255, 255, 255);</string>
    </property>
   </widget>
+  <widget class="QLabel" name="warning">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>600</y>
+     <width>771</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: #B00000;
+border: 1px solid #B00000;
+border-radius: 5px;
+background-color: #FF5F5F;</string>
+   </property>
+   <property name="text">
+    <string>Заметка с таким именем уже существует. Пожалуйста, напишите другое или добавте номер. &lt;заметка 1/2/3/...&gt;.</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

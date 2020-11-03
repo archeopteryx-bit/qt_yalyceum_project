@@ -44,8 +44,7 @@ class MainWindow(QMainWindow):
             self.note_list.addItem(elem[0])
 
     def open_note(self):
-        new_note.flag = 'off'
-        new_note.editnote()
+        edit_note.editnote()
 
     def menu(self):
         if self.menu_widget.isHidden():
@@ -90,20 +89,33 @@ class Note(QWidget):
         self.back.clicked.connect(self.close_note)
         self.save_button.clicked.connect(self.savenote)
         self.delete_2.clicked.connect(self.delete)
-        self.flag = 'on'
+        self.warning.hide()
+
+    def already_have(self):
+        con = sqlite3.connect('note_db.sqlite')
+        cur = con.cursor()
+        note = cur.execute(f"""
+                        SELECT heading
+                        FROM notes
+                        WHERE heading = (?)""", (self.heading.text(),)).fetchall()
+        con.close()
+        if len(note) == 0:
+            return True
+        return False
 
     def close_note(self):
         global save
         new_note.close()
         ex.setVisible(True)
-        if save == 'True':
+        if save == 'True' and self.heading.text() != '':
             self.savenote()
         self.heading.setText('')
         self.noteEdit.setPlainText('')
+        self.warning.hide()
         ex.list_()
 
     def savenote(self):
-        if self.flag == 'on':
+        if self.already_have():
             if self.heading.text() != '':
                 if self.noteEdit.toPlainText() == '':
                     self.noteEdit.setPlainText(' ')
@@ -115,6 +127,52 @@ class Note(QWidget):
                 con.commit()
                 con.close()
         else:
+            self.warning.show()
+
+    def delete(self):
+        new_note.close()
+        ex.setVisible(True)
+        self.heading.setText('')
+        self.noteEdit.setPlainText('')
+        self.warning.hide()
+        ex.list_()
+
+
+class EditNote(QWidget):
+    def __init__(self, *args):
+        super().__init__()
+        uic.loadUi('Plus_Note.ui', self)
+        self.back.clicked.connect(self.close_note)
+        self.save_button.clicked.connect(self.savenote)
+        self.delete_2.clicked.connect(self.delete)
+        self.warning.hide()
+
+    def already_have(self):
+        con = sqlite3.connect('note_db.sqlite')
+        cur = con.cursor()
+        note = cur.execute(f"""
+                        SELECT heading
+                        FROM notes
+                        WHERE heading = (?)""", (self.heading.text(),)).fetchall()
+        con.close()
+        if len(note) == 0:
+            return True
+        return False
+
+    def close_note(self):
+        global save
+        edit_note.close()
+        ex.setVisible(True)
+        if save == 'True' and self.heading.text() != '':
+            self.savenote()
+        self.heading.setText('')
+        self.noteEdit.setPlainText('')
+        self.warning.hide()
+        ex.list_()
+
+    def savenote(self):
+        if self.already_have():
+            self.warning.hide()
             con = sqlite3.connect('note_db.sqlite')
             cur = con.cursor()
             cur.execute(f"""DELETE FROM notes
@@ -124,20 +182,21 @@ class Note(QWidget):
                         (self.heading.text(), self.noteEdit.toPlainText()))
             con.commit()
             con.close()
+        else:
+            self.warning.show()
 
     def editnote(self):
         ex.setVisible(False)
-        new_note.show()
+        edit_note.show()
         con = sqlite3.connect('note_db.sqlite')
         cur = con.cursor()
         note = cur.execute(f"""
                         SELECT heading, note
                         FROM notes
-                        WHERE heading = (?)""", (ex.note_list.currentItem().text(),)).fetchall()
-
+                        WHERE heading = (?)""",
+                           (ex.note_list.currentItem().text(),)).fetchall()
         self.heading.setText(note[0][0])
         self.noteEdit.setPlainText(note[0][1])
-        self.closeEvent(self.back.clicked.connect(self.close))
 
     def delete(self):
         con = sqlite3.connect('note_db.sqlite')
@@ -146,14 +205,12 @@ class Note(QWidget):
                     WHERE heading = (?)""", (ex.note_list.currentItem().text(),))
         con.commit()
         con.close()
-        new_note.close()
-        ex.setVisible(True)
         self.heading.setText('')
         self.noteEdit.setPlainText('')
+        self.close()
+        self.warning.hide()
+        ex.setVisible(True)
         ex.list_()
-
-    def closeEvent(self, event):
-        self.flag = 'off'
 
 
 class Settings(QWidget):
@@ -336,6 +393,9 @@ def theme():
     new_note.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
     new_note.delete_2.setIcon(QIcon('Sprites' + icons + '/basket.png'))
     new_note.save_button.setIcon(QIcon('Sprites' + icons + '/save.png'))
+    edit_note.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
+    edit_note.delete_2.setIcon(QIcon('Sprites' + icons + '/basket.png'))
+    edit_note.save_button.setIcon(QIcon('Sprites' + icons + '/save.png'))
     sett.delpassword_button.setIcon(QIcon('Sprites' + icons + '/open_lock.png'))
     sett.password_button.setIcon(QIcon('Sprites' + icons + '/lock.png'))
     sett.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
@@ -443,6 +503,40 @@ def theme():
                     {l}
     """)
     new_note.save_button.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_1};
+                        color: {color_3};
+                    {l}
+    """)
+
+    edit_note.setStyleSheet(f"""
+                    QWidget{r}
+                        background-color: {color_2};
+                    {l}
+    """)
+    edit_note.frame.setStyleSheet(f"""
+                    QFrame{r}
+                        background-color: {color_1};
+                    {l}
+    """)
+    edit_note.back.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_1};
+                    {l}
+    """)
+    edit_note.noteEdit.setStyleSheet(f"""
+                    QTextEdit{r}
+                        background-color: {color_2};
+                        color: {color_3};
+                    {l}
+    """)
+    edit_note.heading.setStyleSheet(f"""
+                    QLineEdit{r}
+                        background-color: {color_1};
+                        color: {color_3};
+                    {l}
+    """)
+    edit_note.save_button.setStyleSheet(f"""
                     QPushButton{r}
                         background-color: {color_1};
                         color: {color_3};
@@ -637,6 +731,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MainWindow()
     new_note = Note()
+    edit_note = EditNote()
     sett = Settings()
     psw_ = Dlg()
     psw_2 = Dlg2()
