@@ -122,8 +122,9 @@ class Note(QWidget):
                 con = sqlite3.connect('note_db.sqlite')
                 cur = con.cursor()
                 cur.execute(f"""INSERT INTO notes
-                            VALUES (?,?)""",
-                            (self.heading.text(), self.noteEdit.toPlainText()))
+                            VALUES (?,?,?,?)""",
+                            (self.heading.text(), self.noteEdit.toPlainText(),
+                             dt.datetime.today(), dt.datetime.today()))
                 con.commit()
                 con.close()
         else:
@@ -155,7 +156,7 @@ class EditNote(QWidget):
                         FROM notes
                         WHERE heading = (?)""", (self.heading.text(),)).fetchall()
         con.close()
-        if len(note) == 0:
+        if len(note) == 0 or self.heading.text() == ex.note_list.currentItem().text():
             return True
         return False
 
@@ -171,19 +172,26 @@ class EditNote(QWidget):
         ex.list_()
 
     def savenote(self):
-        if self.already_have():
-            self.warning.hide()
-            con = sqlite3.connect('note_db.sqlite')
-            cur = con.cursor()
-            cur.execute(f"""DELETE FROM notes
-                        WHERE heading = (?)""", (ex.note_list.currentItem().text(),))
-            cur.execute(f"""INSERT INTO notes
-                        VALUES (?,?)""",
-                        (self.heading.text(), self.noteEdit.toPlainText()))
-            con.commit()
-            con.close()
-        else:
-            self.warning.show()
+        try:
+            if self.already_have():
+                self.warning.hide()
+                con = sqlite3.connect('note_db.sqlite')
+                cur = con.cursor()
+                note = cur.execute(f"""SELECT create_time
+                                        FROM notes
+                                        WHERE heading = (?)""", (self.heading.text(),)).fetchall()
+                cur.execute(f"""DELETE FROM notes
+                            WHERE heading = (?)""", (ex.note_list.currentItem().text(),))
+                cur.execute(f"""INSERT INTO notes
+                            VALUES (?,?,?,?)""",
+                            (self.heading.text(), self.noteEdit.toPlainText(),
+                             note[0][0], dt.datetime.today()))
+                con.commit()
+                con.close()
+            else:
+                self.warning.show()
+        except Exception as e:
+            print('Непредвиденная ошибка %s' % e)
 
     def editnote(self):
         ex.setVisible(False)
