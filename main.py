@@ -32,16 +32,20 @@ class MainWindow(QMainWindow):
         self.list_()
 
     def list_(self):
-        self.note_list.clear()
-        con = sqlite3.connect('note_db.sqlite')
-        cur = con.cursor()
-        result = cur.execute("""
-                        SELECT heading
-                        FROM notes
-                        """).fetchall()
-        con.close()
-        for elem in result:
-            self.note_list.addItem(elem[0])
+        try:
+            self.note_list.clear()
+            con = sqlite3.connect('note_db.sqlite')
+            cur = con.cursor()
+            result = cur.execute(f"""
+                            SELECT heading, edit_time
+                            FROM notes
+                            """).fetchall()
+            how_to_sort = sorted(result, key=lambda x: x[1], reverse=True)
+            con.close()
+            for elem in how_to_sort:
+                self.note_list.addItem(elem[0])
+        except Exception as e:
+            print('Непредвиденная ошибка %s' % e)
 
     def open_note(self):
         edit_note.editnote()
