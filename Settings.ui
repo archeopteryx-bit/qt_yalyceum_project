@@ -68,7 +68,7 @@
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>430</x>
      <y>70</y>
      <width>160</width>
      <height>171</height>
@@ -82,9 +82,6 @@
         <pointsize>14</pointsize>
        </font>
       </property>
-      <property name="styleSheet">
-       <string notr="true">color: #FFFFFF;</string>
-      </property>
       <property name="text">
        <string>Темы</string>
       </property>
@@ -95,9 +92,6 @@
     </item>
     <item>
      <widget class="QRadioButton" name="light_theme">
-      <property name="styleSheet">
-       <string notr="true">color: #FFFFFF;</string>
-      </property>
       <property name="text">
        <string>Светлая тема</string>
       </property>
@@ -105,9 +99,6 @@
     </item>
     <item>
      <widget class="QRadioButton" name="dark_theme">
-      <property name="styleSheet">
-       <string notr="true">color: #FFFFFF;</string>
-      </property>
       <property name="text">
        <string>Тёмная тема</string>
       </property>
@@ -124,7 +115,7 @@
   <widget class="QPushButton" name="password_button">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>430</x>
      <y>280</y>
      <width>151</width>
      <height>41</height>
@@ -137,9 +128,6 @@
    </property>
    <property name="cursor">
     <cursorShape>ArrowCursor</cursorShape>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">color: #FFFFFF;</string>
    </property>
    <property name="text">
     <string>Блокировать</string>
@@ -152,7 +140,7 @@
   <widget class="QPushButton" name="delpassword_button">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>430</x>
      <y>280</y>
      <width>151</width>
      <height>41</height>
@@ -166,9 +154,6 @@
    <property name="cursor">
     <cursorShape>ArrowCursor</cursorShape>
    </property>
-   <property name="styleSheet">
-    <string notr="true">color: #FFFFFF;</string>
-   </property>
    <property name="text">
     <string>Разблокировать</string>
    </property>
@@ -180,7 +165,7 @@
   <widget class="QCheckBox" name="autosave_btn">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>430</x>
      <y>360</y>
      <width>151</width>
      <height>41</height>
@@ -190,11 +175,136 @@
     <string>Автосохранение</string>
    </property>
   </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>180</y>
+     <width>158</width>
+     <height>109</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_4">
+    <item>
+     <widget class="QLabel" name="order_label">
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>В порядке</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QRadioButton" name="increases">
+      <property name="text">
+       <string>Возрастания</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+      <property name="autoRepeat">
+       <bool>false</bool>
+      </property>
+      <property name="autoExclusive">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QRadioButton" name="decrease">
+      <property name="text">
+       <string>Убывания</string>
+      </property>
+      <property name="autoExclusive">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>290</y>
+     <width>158</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_5">
+    <item>
+     <widget class="QLabel" name="sigh_label">
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>По</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QRadioButton" name="create_time">
+      <property name="text">
+       <string>Дате создания</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QRadioButton" name="edit_time">
+      <property name="text">
+       <string>Дате изменения</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QRadioButton" name="heading">
+      <property name="text">
+       <string>Именам заметок</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QLabel" name="sort_label">
+   <property name="geometry">
+    <rect>
+     <x>620</x>
+     <y>70</y>
+     <width>158</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Сортировка</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+   </property>
+  </widget>
   <zorder>verticalLayoutWidget</zorder>
   <zorder>delpassword_button</zorder>
   <zorder>password_button</zorder>
   <zorder>frame</zorder>
   <zorder>autosave_btn</zorder>
+  <zorder></zorder>
+  <zorder></zorder>
+  <zorder>sort_label</zorder>
  </widget>
  <resources/>
  <connections/>

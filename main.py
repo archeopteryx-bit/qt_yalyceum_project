@@ -13,6 +13,8 @@ with open('colors.txt', mode='rt') as color_:
     color_3 = color_[2][:color_[2].index(' ')]
     icons = color_[3][:color_[3].index(' ')]
     save = color_[4][:color_[4].index(' ')]
+    sort_method = color_[5][:color_[5].index(' ')]
+    sort_reverse = color_[6][:color_[6].index(' ')]
 
 
 class MainWindow(QMainWindow):
@@ -32,20 +34,17 @@ class MainWindow(QMainWindow):
         self.list_()
 
     def list_(self):
-        try:
-            self.note_list.clear()
-            con = sqlite3.connect('note_db.sqlite')
-            cur = con.cursor()
-            result = cur.execute(f"""
-                            SELECT heading, edit_time
-                            FROM notes
-                            """).fetchall()
-            how_to_sort = sorted(result, key=lambda x: x[1], reverse=True)
-            con.close()
-            for elem in how_to_sort:
-                self.note_list.addItem(elem[0])
-        except Exception as e:
-            print('Непредвиденная ошибка %s' % e)
+        global sort_method, sort_reverse
+        self.note_list.clear()
+        con = sqlite3.connect('note_db.sqlite')
+        cur = con.cursor()
+        result = cur.execute(f"""
+                        SELECT heading, {sort_method}
+                        FROM notes""").fetchall()
+        how_to_sort = sorted(result, key=lambda x: x[1], reverse=bool(sort_reverse))
+        con.close()
+        for elem in how_to_sort:
+            self.note_list.addItem(elem[0])
 
     def open_note(self):
         edit_note.editnote()
@@ -235,6 +234,11 @@ class Settings(QWidget):
         self.password_button.clicked.connect(self.password)
         self.delpassword_button.clicked.connect(self.password)
         self.autosave_btn.clicked.connect(self.on_off_save)
+        self.increases.clicked.connect(self.order)
+        self.decrease.clicked.connect(self.order)
+        self.create_time.clicked.connect(self.sigh_sort)
+        self.edit_time.clicked.connect(self.sigh_sort)
+        self.heading.clicked.connect(self.sigh_sort)
         self.passworded()
 
     def passworded(self):
@@ -275,6 +279,26 @@ class Settings(QWidget):
             psw_.show()
         else:
             psw_2.show()
+
+    def order(self):
+        global sort_reverse
+        if self.sender() == self.increases:
+            sort_reverse = ''
+        elif self.sender() == self.decrease:
+            sort_reverse = 'reverse '
+        save_changes()
+        ex.list_()
+
+    def sigh_sort(self):
+        global sort_method
+        if self.sender() == self.create_time:
+            sort_method = 'create_time'
+        elif self.sender() == self.edit_time:
+            sort_method = 'edit_time'
+        elif self.sender() == self.heading:
+            sort_method = 'heading'
+        save_changes()
+        ex.list_()
 
     def close_setting(self):
         sett.close()
@@ -390,7 +414,9 @@ def save_changes():
                      f'{color_2} - color for other.\n'
                      f'{color_3} - color for font.\n'
                      f'{icons} - icons.\n'
-                     f'{save} - autosave.')
+                     f'{save} - autosave.\n'
+                     f'{sort_method} - sort.\n'
+                     f'{sort_reverse} - revers sort.')
 
 
 def theme():
@@ -605,6 +631,46 @@ def theme():
                         color: {color_3};
                     {l}
     """)
+    sett.sort_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3};
+                    {l}
+    """)
+    sett.order_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3};
+                    {l}
+    """)
+    sett.increases.setStyleSheet(f"""
+                    QRadioButton{r}
+                        color: {color_3};
+                    {l}
+    """)
+    sett.decrease.setStyleSheet(f"""
+                    QRadioButton{r}
+                        color: {color_3};
+                    {l}
+    """)
+    sett.sigh_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3};
+                    {l}
+    """)
+    sett.create_time.setStyleSheet(f"""
+                    QRadioButton{r}
+                        color: {color_3};
+                    {l}
+    """)
+    sett.edit_time.setStyleSheet(f"""
+                    QRadioButton{r}
+                        color: {color_3};
+                    {l}
+    """)
+    sett.heading.setStyleSheet(f"""
+                    QRadioButton{r}
+                        color: {color_3};
+                    {l}
+    """)
 
     psw_.setStyleSheet(f"""
                     QDialog{r}
@@ -713,6 +779,26 @@ def check():
     else:
         sett.light_theme.setChecked(False)
         sett.dark_theme.setChecked(True)
+
+    if sort_reverse == 'reverse ':
+        sett.increases.setChecked(True)
+        sett.decrease.setChecked(False)
+    else:
+        sett.decrease.setChecked(True)
+        sett.increases.setChecked(False)
+
+    if sort_method == 'edit_time':
+        sett.edit_time.setChecked(True)
+        sett.create_time.setChecked(False)
+        sett.heading.setChecked(False)
+    elif sort_method == 'create_time':
+        sett.create_time.setChecked(True)
+        sett.edit_time.setChecked(False)
+        sett.heading.setChecked(False)
+    elif sort_method == 'heading':
+        sett.heading.setChecked(True)
+        sett.edit_time.setChecked(False)
+        sett.create_time.setChecked(False)
 
     theme()
 
