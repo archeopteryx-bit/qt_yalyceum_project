@@ -3,3 +3,5 @@
 #FFFFFF - color for font.
  - icons.
 False - autosave.
+edit_time - sort.
+ - revers sort.
