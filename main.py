@@ -15,6 +15,8 @@ with open('colors.txt', mode='rt') as color_:
     save = color_[4][:color_[4].index(' ')]
     sort_method = color_[5][:color_[5].index(' ')]
     sort_reverse = color_[6][:color_[6].index(' ')]
+html_note = color_2
+head = ''
 
 
 class MainWindow(QMainWindow):
@@ -56,6 +58,8 @@ class MainWindow(QMainWindow):
             self.menu_widget.hide()
 
     def add_note(self):
+        global html_note, color_2
+        html_note = color_2
         self.menu_widget.hide()
         ex.setVisible(False)
         new_note.show()
@@ -66,6 +70,7 @@ class MainWindow(QMainWindow):
             self.menu_widget.hide()
         elif self.sender() == self.close_search:
             self.search_frame.hide()
+            self.list_()
 
     def searching(self):
         ex.note_list.clear()
@@ -74,7 +79,8 @@ class MainWindow(QMainWindow):
         result = cur.execute(f"""
                         SELECT heading
                         FROM notes
-                        WHERE note LIKE '%{self.search.text()}%' OR heading LIKE '%{self.search.text()}%'
+                        WHERE note LIKE '%{self.search.text()}%'
+                        OR heading LIKE '%{self.search.text()}%'
                         """).fetchall()
         con.close()
         for elem in result:
@@ -87,12 +93,27 @@ class MainWindow(QMainWindow):
 
 class Note(QWidget):
     def __init__(self, *args):
+        global head
         super().__init__()
         uic.loadUi('Plus_Note.ui', self)
         self.back.clicked.connect(self.close_note)
         self.save_button.clicked.connect(self.savenote)
         self.delete_2.clicked.connect(self.delete)
+        self.color_note.clicked.connect(self.chose_color)
+        self.note_func_btn.clicked.connect(self.show_func)
+        self.note_func.hide()
         self.warning.hide()
+
+    def show_func(self):
+        if self.note_func.isHidden():
+            self.note_func.show()
+        elif not self.note_func.isHidden():
+            self.note_func.hide()
+
+    def chose_color(self):
+        global head
+        head = 'nn' + self.heading.text()
+        clr.show()
 
     def already_have(self):
         con = sqlite3.connect('note_db.sqlite')
@@ -107,7 +128,7 @@ class Note(QWidget):
         return False
 
     def close_note(self):
-        global save
+        global save, color_2, html_note, head
         new_note.close()
         ex.setVisible(True)
         if save == 'True' and self.heading.text() != '':
@@ -115,9 +136,12 @@ class Note(QWidget):
         self.heading.setText('')
         self.noteEdit.setPlainText('')
         self.warning.hide()
+        self.note_func.hide()
         ex.list_()
+        head = ''
 
     def savenote(self):
+        global html_note
         if self.already_have():
             if self.heading.text() != '':
                 if self.noteEdit.toPlainText() == '':
@@ -125,13 +149,21 @@ class Note(QWidget):
                 con = sqlite3.connect('note_db.sqlite')
                 cur = con.cursor()
                 cur.execute(f"""INSERT INTO notes
-                            VALUES (?,?,?,?)""",
+                            VALUES (?,?,?,?,?)""",
                             (self.heading.text(), self.noteEdit.toPlainText(),
-                             dt.datetime.today(), dt.datetime.today()))
+                             dt.datetime.today(), dt.datetime.today(), html_note))
                 con.commit()
                 con.close()
         else:
             self.warning.show()
+
+    def closeEvent(self, event):
+        r, l = '{', '}'
+        self.noteEdit.setStyleSheet(f"""
+                QTextEdit{r}
+                    background-color: {color_2};
+                {l}
+        """)
 
     def delete(self):
         new_note.close()
@@ -139,17 +171,33 @@ class Note(QWidget):
         self.heading.setText('')
         self.noteEdit.setPlainText('')
         self.warning.hide()
+        self.note_func.hide()
         ex.list_()
 
 
 class EditNote(QWidget):
     def __init__(self, *args):
+        global head
         super().__init__()
         uic.loadUi('Plus_Note.ui', self)
         self.back.clicked.connect(self.close_note)
         self.save_button.clicked.connect(self.savenote)
         self.delete_2.clicked.connect(self.delete)
+        self.color_note.clicked.connect(self.chose_color)
+        self.note_func_btn.clicked.connect(self.show_func)
+        self.note_func.hide()
         self.warning.hide()
+
+    def show_func(self):
+        if self.note_func.isHidden():
+            self.note_func.show()
+        elif not self.note_func.isHidden():
+            self.note_func.hide()
+
+    def chose_color(self):
+        global head
+        head = 'en' + self.heading.text()
+        clr.show()
 
     def already_have(self):
         con = sqlite3.connect('note_db.sqlite')
@@ -164,7 +212,7 @@ class EditNote(QWidget):
         return False
 
     def close_note(self):
-        global save
+        global save, head
         edit_note.close()
         ex.setVisible(True)
         if save == 'True' and self.heading.text() != '':
@@ -172,9 +220,12 @@ class EditNote(QWidget):
         self.heading.setText('')
         self.noteEdit.setPlainText('')
         self.warning.hide()
+        self.note_func.hide()
         ex.list_()
+        head = ''
 
     def savenote(self):
+        global html_note
         try:
             if self.already_have():
                 self.warning.hide()
@@ -182,13 +233,13 @@ class EditNote(QWidget):
                 cur = con.cursor()
                 note = cur.execute(f"""SELECT create_time
                                         FROM notes
-                                        WHERE heading = (?)""", (self.heading.text(),)).fetchall()
+                                        WHERE heading = (?)""", (ex.note_list.currentItem().text(),)).fetchall()
                 cur.execute(f"""DELETE FROM notes
                             WHERE heading = (?)""", (ex.note_list.currentItem().text(),))
                 cur.execute(f"""INSERT INTO notes
-                            VALUES (?,?,?,?)""",
+                            VALUES (?,?,?,?,?)""",
                             (self.heading.text(), self.noteEdit.toPlainText(),
-                             note[0][0], dt.datetime.today()))
+                             note[0][0], dt.datetime.today(), html_note))
                 con.commit()
                 con.close()
             else:
@@ -197,17 +248,24 @@ class EditNote(QWidget):
             print('Непредвиденная ошибка %s' % e)
 
     def editnote(self):
+        r, l = '{', '}'
         ex.setVisible(False)
         edit_note.show()
         con = sqlite3.connect('note_db.sqlite')
         cur = con.cursor()
         note = cur.execute(f"""
-                        SELECT heading, note
+                        SELECT heading, note, html_color
                         FROM notes
                         WHERE heading = (?)""",
                            (ex.note_list.currentItem().text(),)).fetchall()
         self.heading.setText(note[0][0])
         self.noteEdit.setPlainText(note[0][1])
+        edit_note.noteEdit.setStyleSheet(f"""
+                        QTextEdit{r}
+                            background-color: {note[0][2]};
+                            color: {color_3};
+                        {l}
+        """)
 
     def delete(self):
         con = sqlite3.connect('note_db.sqlite')
@@ -220,6 +278,7 @@ class EditNote(QWidget):
         self.noteEdit.setPlainText('')
         self.close()
         self.warning.hide()
+        self.note_func.hide()
         ex.setVisible(True)
         ex.list_()
 
@@ -239,6 +298,7 @@ class Settings(QWidget):
         self.create_time.clicked.connect(self.sigh_sort)
         self.edit_time.clicked.connect(self.sigh_sort)
         self.heading.clicked.connect(self.sigh_sort)
+        self.html_color.clicked.connect(self.sigh_sort)
         self.passworded()
 
     def passworded(self):
@@ -297,6 +357,8 @@ class Settings(QWidget):
             sort_method = 'edit_time'
         elif self.sender() == self.heading:
             sort_method = 'heading'
+        elif self.sender() == self.html_color:
+            sort_method = 'html_color'
         save_changes()
         ex.list_()
 
@@ -385,6 +447,67 @@ class Dlg2(QDialog):
         event.accept()
 
 
+class Dlg3(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('Color_note.ui', self)
+        self.set_color.clicked.connect(self.change_color)
+        self.cancel.clicked.connect(self.close_)
+        self.error_msg.hide()
+        self.msg = ''
+        self.flag = True
+
+    def change_color(self):
+        self.flag = True
+        if self.html_code.text() != '':
+            if (self.html_code.text()[0] == '#' and
+                    len(self.html_code.text()[1:]) == 6):
+                for i in self.html_code.text()[1:]:
+                    if i.upper() not in '1234567890ABCDEF':
+                        self.msg = 'Пожалуйста, введите цвет в формате HTML.'
+                        self.flag = False
+            else:
+                self.msg = 'Пожалуйста, введите цвет в формате HTML.'
+                self.flag = False
+        else:
+            self.msg = 'Поле пустое. Пожалуйста, заполните поле.'
+            self.flag = False
+
+        if self.flag:
+            self.set_color_for_note()
+        else:
+            self.error_msg.setText(self.msg)
+            self.error_msg.show()
+
+    def set_color_for_note(self):
+        global head, html_note
+        r, l = '{', '}'
+        if head[:2] == 'nn':
+            new_note.noteEdit.setStyleSheet(f"""
+                    QTextEdit{r}
+                        background-color: {self.html_code.text()};
+                    {l}
+            """)
+        else:
+            edit_note.noteEdit.setStyleSheet(f"""
+                    QTextEdit{r}
+                        background-color: {self.html_code.text()};
+                    {l}
+            """)
+        html_note = self.html_code.text()
+        self.close_()
+        head = head[:2]
+
+    def close_(self):
+        global head
+        self.close()
+
+    def closeEvent(self, event):
+        self.html_code.setText('')
+        self.error_msg.hide()
+        event.accept()
+
+
 class CheckPassword(QDialog):
     def __init__(self):
         super().__init__()
@@ -428,19 +551,29 @@ def theme():
     ex.close_search.setIcon(QIcon('Sprites' + icons + '/close_search.png'))
     ex.open_search.setIcon(QIcon('Sprites' + icons + '/search.png'))
     ex.to_search.setIcon(QIcon('Sprites' + icons + '/search.png'))
+
     new_note.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
     new_note.delete_2.setIcon(QIcon('Sprites' + icons + '/basket.png'))
     new_note.save_button.setIcon(QIcon('Sprites' + icons + '/save.png'))
+    new_note.note_func_btn.setIcon(QIcon('Sprites' + icons + '/menu1.png'))
+    new_note.color_note.setIcon(QIcon('Sprites' + icons + '/color.png'))
+
     edit_note.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
     edit_note.delete_2.setIcon(QIcon('Sprites' + icons + '/basket.png'))
     edit_note.save_button.setIcon(QIcon('Sprites' + icons + '/save.png'))
+    edit_note.note_func_btn.setIcon(QIcon('Sprites' + icons + '/menu1.png'))
+    edit_note.color_note.setIcon(QIcon('Sprites' + icons + '/color.png'))
+
     sett.delpassword_button.setIcon(QIcon('Sprites' + icons + '/open_lock.png'))
     sett.password_button.setIcon(QIcon('Sprites' + icons + '/lock.png'))
     sett.back.setIcon(QIcon('Sprites' + icons + '/back.png'))
+
     psw_.not_see_psw.setIcon(QIcon('Sprites' + icons + '/close_eye.png'))
     psw_.see_psw.setIcon(QIcon('Sprites' + icons + '/eye.png'))
+
     psw_2.not_see_psw.setIcon(QIcon('Sprites' + icons + '/close_eye.png'))
     psw_2.see_psw.setIcon(QIcon('Sprites' + icons + '/eye.png'))
+
     chk.see_psw.setIcon(QIcon('Sprites' + icons + '/eye.png'))
     chk.not_see_psw.setIcon(QIcon('Sprites' + icons + '/close_eye.png'))
 
@@ -546,6 +679,38 @@ def theme():
                         color: {color_3};
                     {l}
     """)
+    new_note.color_note.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_1};
+                        color: {color_3};
+                    {l}
+    """)
+    new_note.note_func_btn.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_1};
+                        color: {color_3};
+                    {l}
+    """)
+    new_note.note_func.setStyleSheet(f"""
+                    QWidget{r}
+                        background-color: {color_1};
+                    {l}
+    """)
+    new_note.save_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3}
+                    {l}
+    """)
+    new_note.delete_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3}
+                    {l}
+    """)
+    new_note.color_note_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3}
+                    {l}
+    """)
 
     edit_note.setStyleSheet(f"""
                     QWidget{r}
@@ -578,6 +743,38 @@ def theme():
                     QPushButton{r}
                         background-color: {color_1};
                         color: {color_3};
+                    {l}
+    """)
+    edit_note.color_note.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_1};
+                        color: {color_3};
+                    {l}
+    """)
+    edit_note.note_func_btn.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_1};
+                        color: {color_3};
+                    {l}
+    """)
+    edit_note.note_func.setStyleSheet(f"""
+                    QWidget{r}
+                        background-color: {color_1};
+                    {l}
+    """)
+    edit_note.save_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3}
+                    {l}
+    """)
+    edit_note.delete_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3}
+                    {l}
+    """)
+    edit_note.color_note_label.setStyleSheet(f"""
+                    QLabel{r}
+                        color: {color_3}
                     {l}
     """)
 
@@ -671,6 +868,11 @@ def theme():
                         color: {color_3};
                     {l}
     """)
+    sett.html_color.setStyleSheet(f"""
+                    QRadioButton{r}
+                        color: {color_3};
+                    {l}
+    """)
 
     psw_.setStyleSheet(f"""
                     QDialog{r}
@@ -754,7 +956,7 @@ def theme():
     chk.first_line.setStyleSheet(f"""
                     QLineEdit{r}
                         background-color: {color_2};
-                        color {color_3};
+                        color: {color_3};
                     {l}
     """)
     chk.ok.setStyleSheet(f"""
@@ -764,6 +966,36 @@ def theme():
                     {l}
     """)
     chk.cancel.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_2};
+                        color: {color_3};
+                    {l}
+    """)
+
+    clr.setStyleSheet(f"""
+                    QDialog{r}
+                        background-color: {color_2};
+                    {l}
+    """)
+    clr.color_label.setStyleSheet(f"""
+                    QLabel{r}
+                        background-color: {color_2};
+                        color: {color_3};
+                    {l}
+    """)
+    clr.html_code.setStyleSheet(f"""
+                    QLineEdit{r}
+                        background-color: {color_2};
+                        color: {color_3};
+                    {l}
+    """)
+    clr.set_color.setStyleSheet(f"""
+                    QPushButton{r}
+                        background-color: {color_2};
+                        color: {color_3};
+                    {l}
+    """)
+    clr.cancel.setStyleSheet(f"""
                     QPushButton{r}
                         background-color: {color_2};
                         color: {color_3};
@@ -791,12 +1023,20 @@ def check():
         sett.edit_time.setChecked(True)
         sett.create_time.setChecked(False)
         sett.heading.setChecked(False)
+        sett.html_color.setChecked(False)
     elif sort_method == 'create_time':
         sett.create_time.setChecked(True)
         sett.edit_time.setChecked(False)
         sett.heading.setChecked(False)
+        sett.html_color.setChecked(False)
     elif sort_method == 'heading':
         sett.heading.setChecked(True)
+        sett.edit_time.setChecked(False)
+        sett.create_time.setChecked(False)
+        sett.html_color.setChecked(False)
+    elif sort_method == 'html_color':
+        sett.html_color.setChecked(True)
+        sett.heading.setChecked(False)
         sett.edit_time.setChecked(False)
         sett.create_time.setChecked(False)
 
@@ -833,6 +1073,7 @@ if __name__ == '__main__':
     sett = Settings()
     psw_ = Dlg()
     psw_2 = Dlg2()
+    clr = Dlg3()
     chk = CheckPassword()
     check()
     if_passworded()
