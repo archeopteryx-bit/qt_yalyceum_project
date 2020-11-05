@@ -3,7 +3,7 @@ import sqlite3
 import datetime as dt
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QDialog, QLineEdit
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QColor
 
 
 with open('colors.txt', mode='rt') as color_:
@@ -37,16 +37,20 @@ class MainWindow(QMainWindow):
 
     def list_(self):
         global sort_method, sort_reverse
+        number = 0
         self.note_list.clear()
         con = sqlite3.connect('note_db.sqlite')
         cur = con.cursor()
         result = cur.execute(f"""
-                        SELECT heading, {sort_method}
+                        SELECT heading, {sort_method}, html_color
                         FROM notes""").fetchall()
         how_to_sort = sorted(result, key=lambda x: x[1], reverse=bool(sort_reverse))
         con.close()
         for elem in how_to_sort:
             self.note_list.addItem(elem[0])
+            self.note_list.item(number).setBackground(QColor(elem[2]))
+            number += 1
+        number = 0
 
     def open_note(self):
         edit_note.editnote()
@@ -367,87 +371,7 @@ class Settings(QWidget):
         ex.setVisible(True)
 
 
-class Dlg(QDialog):
-    def __init__(self, *args):
-        super().__init__()
-        uic.loadUi('SetPassword.ui', self)
-        self.password_error_label.hide()
-        self.ok.clicked.connect(self.set_password)
-        self.cancel.clicked.connect(self.close_)
-        self.see_psw.clicked.connect(self.ech_mode)
-        self.not_see_psw.clicked.connect(self.ech_mode)
-        self.not_see_psw.show()
-
-    def ech_mode(self):
-        if self.sender() == self.not_see_psw:
-            self.first_line.setEchoMode(QLineEdit.Normal)
-            self.not_see_psw.hide()
-        else:
-            self.first_line.setEchoMode(QLineEdit.Password)
-            self.not_see_psw.show()
-
-    def set_password(self):
-        if self.first_line.text() == self.second_line.text():
-            with open('psw.txt', mode='wt') as psw_w:
-                psw_w.write('.' + self.first_line.text())
-            sett.passworded()
-            self.close()
-        else:
-            self.password_error_label.setText('Введённые пароли не совпадают.')
-            self.password_error_label.show()
-
-    def close_(self):
-        self.close()
-
-    def closeEvent(self, event):
-        self.first_line.setText('')
-        self.second_line.setText('')
-        self.password_error_label.hide()
-        event.accept()
-
-
-class Dlg2(QDialog):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi('Password.ui', self)
-        self.password_error_label.hide()
-        self.cancel.setText('Выход')
-        self.ok.clicked.connect(self.delete_password)
-        self.cancel.clicked.connect(self.close_)
-        self.see_psw.clicked.connect(self.ech_mode)
-        self.not_see_psw.clicked.connect(self.ech_mode)
-        self.not_see_psw.show()
-
-    def ech_mode(self):
-        if self.sender() == self.not_see_psw:
-            self.first_line.setEchoMode(QLineEdit.Normal)
-            self.not_see_psw.hide()
-        else:
-            self.first_line.setEchoMode(QLineEdit.Password)
-            self.not_see_psw.show()
-
-    def delete_password(self):
-        with open('psw.txt', mode='rt') as psw_r:
-            psw_r = psw_r.readline()[1:]
-        if self.first_line.text() == psw_r.rstrip():
-            with open('psw.txt', mode='wt') as psw_w:
-                psw_w.write('.')
-            sett.passworded()
-            self.close()
-        else:
-            self.password_error_label.setText('Введён неправильный пароль.')
-            self.password_error_label.show()
-
-    def close_(self):
-        self.close()
-
-    def closeEvent(self, event):
-        self.first_line.setText('')
-        self.password_error_label.hide()
-        event.accept()
-
-
-class Dlg3(QDialog):
+class Color(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi('Color_note.ui', self)
@@ -505,6 +429,86 @@ class Dlg3(QDialog):
     def closeEvent(self, event):
         self.html_code.setText('')
         self.error_msg.hide()
+        event.accept()
+
+
+class SetPassword(QDialog):
+    def __init__(self, *args):
+        super().__init__()
+        uic.loadUi('SetPassword.ui', self)
+        self.password_error_label.hide()
+        self.ok.clicked.connect(self.set_password)
+        self.cancel.clicked.connect(self.close_)
+        self.see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.show()
+
+    def ech_mode(self):
+        if self.sender() == self.not_see_psw:
+            self.first_line.setEchoMode(QLineEdit.Normal)
+            self.not_see_psw.hide()
+        else:
+            self.first_line.setEchoMode(QLineEdit.Password)
+            self.not_see_psw.show()
+
+    def set_password(self):
+        if self.first_line.text() == self.second_line.text():
+            with open('psw.txt', mode='wt') as psw_w:
+                psw_w.write('.' + self.first_line.text())
+            sett.passworded()
+            self.close()
+        else:
+            self.password_error_label.setText('Введённые пароли не совпадают.')
+            self.password_error_label.show()
+
+    def close_(self):
+        self.close()
+
+    def closeEvent(self, event):
+        self.first_line.setText('')
+        self.second_line.setText('')
+        self.password_error_label.hide()
+        event.accept()
+
+
+class Password(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('Password.ui', self)
+        self.password_error_label.hide()
+        self.cancel.setText('Выход')
+        self.ok.clicked.connect(self.delete_password)
+        self.cancel.clicked.connect(self.close_)
+        self.see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.clicked.connect(self.ech_mode)
+        self.not_see_psw.show()
+
+    def ech_mode(self):
+        if self.sender() == self.not_see_psw:
+            self.first_line.setEchoMode(QLineEdit.Normal)
+            self.not_see_psw.hide()
+        else:
+            self.first_line.setEchoMode(QLineEdit.Password)
+            self.not_see_psw.show()
+
+    def delete_password(self):
+        with open('psw.txt', mode='rt') as psw_r:
+            psw_r = psw_r.readline()[1:]
+        if self.first_line.text() == psw_r.rstrip():
+            with open('psw.txt', mode='wt') as psw_w:
+                psw_w.write('.')
+            sett.passworded()
+            self.close()
+        else:
+            self.password_error_label.setText('Введён неправильный пароль.')
+            self.password_error_label.show()
+
+    def close_(self):
+        self.close()
+
+    def closeEvent(self, event):
+        self.first_line.setText('')
+        self.password_error_label.hide()
         event.accept()
 
 
@@ -1071,9 +1075,9 @@ if __name__ == '__main__':
     new_note = Note()
     edit_note = EditNote()
     sett = Settings()
-    psw_ = Dlg()
-    psw_2 = Dlg2()
-    clr = Dlg3()
+    psw_ = SetPassword()
+    psw_2 = Password()
+    clr = Color()
     chk = CheckPassword()
     check()
     if_passworded()
