@@ -69,6 +69,16 @@ class MainWindow(QMainWindow):
         global html_note, color_2
         html_note = color_2
         self.menu_widget.hide()
+        if color_1 == '#FFB841':
+            new_note.noteEdit.setStyleSheet("""
+                            QTextEdit{
+                                color: #000000;
+                            }""")
+        else:
+            new_note.noteEdit.setStyleSheet("""
+                            QTextEdit{
+                                color: #FFFFFF;
+                            }""")
         ex.setVisible(False)
         new_note.show()
 
@@ -1030,12 +1040,12 @@ def check():
         sett.light_theme.setChecked(False)
         sett.dark_theme.setChecked(True)
 
-    if sort_reverse == 'reverse ':
-        sett.increases.setChecked(True)
-        sett.decrease.setChecked(False)
-    else:
+    if sort_reverse == 'reverse':
         sett.decrease.setChecked(True)
         sett.increases.setChecked(False)
+    else:
+        sett.increases.setChecked(True)
+        sett.decrease.setChecked(False)
 
     if sort_method == 'edit_time':
         sett.edit_time.setChecked(True)
