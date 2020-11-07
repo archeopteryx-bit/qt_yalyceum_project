@@ -276,6 +276,7 @@ class EditNote(QWidget):
             print('Непредвиденная ошибка %s' % e)
 
     def editnote(self):
+        global html_note
         r, l = '{', '}'
         ex.setVisible(False)
         edit_note.show()
@@ -288,12 +289,17 @@ class EditNote(QWidget):
                            (ex.note_list.currentItem().text(),)).fetchall()
         self.heading.setText(note[0][0])
         self.noteEdit.setPlainText(note[0][1])
+        html_note = note[0][2]
+        color_font = color_3
+        if note[0][2][:-1] == '#FFFFF':
+            color_font = '#000000'
+        elif note[0][2][:-1] == '#00000':
+            color_font = '#FFFFFF'
         edit_note.noteEdit.setStyleSheet(f"""
                         QTextEdit{r}
                             background-color: {note[0][2]};
-                            color: {color_3};
-                        {l}
-        """)
+                            color: {color_font};
+                        {l}""")
 
     def delete(self):
         con = sqlite3.connect('note_db.sqlite')
@@ -430,18 +436,25 @@ class Color(QDialog):
     def set_color_for_note(self):
         global head, html_note
         r, l = '{', '}'
+        color_font = ''
+        if self.html_code.text()[:-1] == '#FFFFF':
+            color_font = 'color: #000000;'
+        elif self.html_code.text()[:-1] == '#00000':
+            color_font = 'color: #FFFFFF;'
+
         if head[:2] == 'nn':
             new_note.noteEdit.setStyleSheet(f"""
                     QTextEdit{r}
                         background-color: {self.html_code.text()};
-                    {l}
-            """)
+                        {color_font}
+                    {l}""")
         else:
             edit_note.noteEdit.setStyleSheet(f"""
                     QTextEdit{r}
                         background-color: {self.html_code.text()};
-                    {l}
-            """)
+                        {color_font}
+                    {l}""")
+
         html_note = self.html_code.text()
         self.close_()
         head = head[:2]
