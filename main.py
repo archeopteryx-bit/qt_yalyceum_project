@@ -49,6 +49,10 @@ class MainWindow(QMainWindow):
         for elem in how_to_sort:
             self.note_list.addItem(elem[0])
             self.note_list.item(number).setBackground(QColor(elem[2]))
+            if elem[2][:-1].upper() == '#FFFFF':
+                self.note_list.item(number).setForeground(QColor('#000000'))
+            elif elem[2][:-1] == '#00000':
+                self.note_list.item(number).setForeground(QColor('#FFFFFF'))
             number += 1
         number = 0
 
@@ -92,6 +96,10 @@ class MainWindow(QMainWindow):
         for elem in result:
             self.note_list.addItem(elem[0])
             self.note_list.item(number).setBackground(QColor(elem[1]))
+            if elem[1][:-1].upper() == '#FFFFF':
+                self.note_list.item(number).setForeground(QColor('#000000'))
+            elif elem[1][:-1] == '#00000':
+                self.note_list.item(number).setForeground(QColor('#FFFFFF'))
             number += 1
         number = 0
 
@@ -125,6 +133,7 @@ class Note(QWidget):
         clr.show()
 
     def already_have(self):
+        r, l = '{', '}'
         con = sqlite3.connect('note_db.sqlite')
         cur = con.cursor()
         note = cur.execute(f"""
