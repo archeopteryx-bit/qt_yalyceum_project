@@ -75,20 +75,25 @@ class MainWindow(QMainWindow):
         elif self.sender() == self.close_search:
             self.search_frame.hide()
             self.list_()
+            self.search.setText('')
 
     def searching(self):
+        number = 0
         ex.note_list.clear()
         con = sqlite3.connect('note_db.sqlite')
         cur = con.cursor()
         result = cur.execute(f"""
-                        SELECT heading
+                        SELECT heading, html_color
                         FROM notes
                         WHERE note LIKE '%{self.search.text()}%'
                         OR heading LIKE '%{self.search.text()}%'
                         """).fetchall()
         con.close()
         for elem in result:
-            ex.note_list.addItem(elem[0])
+            self.note_list.addItem(elem[0])
+            self.note_list.item(number).setBackground(QColor(elem[1]))
+            number += 1
+        number = 0
 
     def open_setting(self):
         ex.setVisible(False)
